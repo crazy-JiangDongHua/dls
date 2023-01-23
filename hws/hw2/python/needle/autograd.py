@@ -432,7 +432,8 @@ def compute_gradient_of_variables(output_tensor, out_grad):
 
     ### BEGIN YOUR SOLUTION
     for node in reverse_topo_order:
-        # pytorch中只有叶子结点会累加梯度，可能中间节点都是一直传列表不求和
+        # pytorch中只有叶子结点保存梯度到tensor，中间节点的梯度只保存到node_to_output_grads_list里面
+        # 另外梯度应该是累加的，应该用+=，这里简化了
         node.grad=sum_node_list(node_to_output_grads_list[node])
         # 包含了require_gard=false的情况
         # 因为正常情况下最后一个require_gard=false的结点将是叶结点
