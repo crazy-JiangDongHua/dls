@@ -244,6 +244,19 @@ def conv_im2col(Z, weight):
 
 还有两个问题，等实现的时候再回来想：
 
-1. 实现padding和stride：padding不会真就直接加吧，那感觉内存效率很低，stride（跳步）感觉可以通过strides实现
-2. 反向传播：如何把img2col的梯度对应回img呢，这可以通过修改strides实现吗。
+1. 实现padding和stride
+
+   * padding可以简单通过申请一块新的内存（全部填0），然后将原图复制到新内存中
+   * stride可以通过修改strides实现，如果stride是4，那么将img2col矩阵的strides改成`(Ns, 4*Hs, 4*Ws, Hs, Ws, Cs)`就可以生成新的矩阵
+
+2. 反向传播：
+
+   以下用conv(Z, weight)代表self，out=conv(Z, weight)
+
+   1. Z.grad：Z.grad可以通过将weight翻转（上下和左右），然后对out.grad做卷积得到，其中stride=1。self.stride=1的时候padding=K-1-self.padding，当self.stride>1时，会出现左右padding不一致以及padding为负数的边界情况，暂时不想了。
+   2. weight.grad：weight.grad可以通过out.grad对Z做卷积得到，其中需要把批量维度B作为输入通道实现梯度求和，其中stride=1。self.stride=1的时候padding=self.padding，当self.stride>1时，会出现好多边界情况，暂时不想了。
+
+
+
+对于卷积层中还会存在的偏置b，它的梯度就是out.grad求和就行了，输出维度为(Cout,)。
 
